@@ -1,0 +1,127 @@
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { CreatePetitionDto } from './dto/create-petition.dto';
+import { UpdatePetitionDto } from './dto/update-petition.dto';
+import { Petition } from './entities/petition.entity';
+import { getRepository, Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import slugify from 'slugify';
+import { SignaturesService } from 'src/signatures/signatures.service';
+import { CreateSignatureDto } from 'src/signatures/dto/create-signature.dto';
+
+@Injectable()
+export class PetitionsService {
+  constructor(
+    @InjectRepository(Petition)
+    private readonly petitionRepository: Repository<Petition>,
+    private readonly SignatureService: SignaturesService,
+  ) {}
+
+  private slugMaker(title: string): string {
+    return (
+      slugify(title, { lower: true }) +
+      '-' +
+      ((Math.random() * Math.pow(36, 6)) | 0).toString(36)
+    );
+  }
+
+  /**
+   *
+   * @param {number} months Desired number of months into the future
+   * @returns {Date} Date in specified number of months from current date
+   */
+  private getFutureDate(months: number = 3): Date {
+    const currDate = new Date();
+    currDate.setMonth(currDate.getMonth() + months);
+    return currDate;
+  }
+
+  async createPetition(
+    createPetitionDto: CreatePetitionDto,
+  ): Promise<Petition> {
+    // Create a Petition
+    let newPetition = new Petition();
+    Object.assign(newPetition, createPetitionDto.petition);
+
+    Object.assign(newPetition, createPetitionDto.creator);
+    newPetition.slug = this.slugMaker(createPetitionDto.petition.name);
+    newPetition.deadline = this.getFutureDate();
+    newPetition.isOpen = false;
+    newPetition.isVisible = false;
+
+    newPetition = await this.petitionRepository.save(newPetition);
+
+    let createSignatureDto: CreateSignatureDto = {
+      petition: newPetition,
+      signatoryName: createPetitionDto.creator.creatorName,
+      signatoryEmail: createPetitionDto.creator.creatorEmail,
+      signatoryPhoneNumber: createPetitionDto.creator.creatorPhoneNumber,
+      signatoryState: createPetitionDto.creator.creatorState,
+      notify: createPetitionDto.creator.notify,
+      signatoryConstituency: createPetitionDto.creator.creatorConstituency,
+    };
+    const newSignature =
+      await this.SignatureService.signPetition(createSignatureDto);
+
+    // Sign the Petition With the User
+    return this.petitionRepository.save({
+      id: newPetition.id,
+      signature: [newSignature],
+    });
+  }
+
+  /**
+   *
+   * @param {string} slug Unique slug identifying a petition
+   * @returns {Promise<Petition>} Full Petition object
+   */
+  async getPetitionBySlug(slug: string): Promise<Petition> {
+    let petition;
+
+    try {
+      petition = await this.petitionRepository.findOne({ where: { slug } });
+    } catch (error) {
+      return error;
+    }
+
+    if (!petition) {
+      throw new HttpException(
+        'This petition does not exist',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return petition;
+  }
+
+  async signPetition(slug: string, userId: number): Promise<any> {
+    let petition;
+
+    try {
+      petition = await this.getPetitionBySlug(slug);
+    } catch (error) {
+      return error;
+    }
+
+    // Check if the petition is still open (i.e. the deadline hasn't passed)
+    // Update the signature entity
+    // Update the petitions entity
+    // Return success/failure
+  }
+
+  async closePetition(slug: string): Promise<any> {
+    let petition;
+
+    try {
+      petition = await this.getPetitionBySlug(slug);
+    } catch (error) {
+      return error;
+    }
+
+    // Mark the petition as closed
+  }
+
+  async getPopularPetitions(slug: string): Promise<Petition[]> {
+    // Check for petitions with the highest number of signatures in the during the day. Limit it to 5 results
+    return;
+  }
+}
