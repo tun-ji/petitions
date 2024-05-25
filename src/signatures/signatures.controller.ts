@@ -15,8 +15,8 @@ import { UpdateSignatureDto } from './dto/update-signature.dto';
 export class SignaturesController {
   constructor(private readonly signaturesService: SignaturesService) {}
 
-  // @Post()
-  // create(@Body() createSignatureDto: CreateSignatureDto) {
-  //   return this.signaturesService.create(createSignatureDto);
-  // }
+  @Post('sign')
+  async create(@Body() createSignatureDto: CreateSignatureDto) {
+    return await this.signaturesService.signPetition(createSignatureDto);
+  }
 }
