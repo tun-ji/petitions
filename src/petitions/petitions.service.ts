@@ -120,8 +120,43 @@ export class PetitionsService {
     // Mark the petition as closed
   }
 
-  async getPopularPetitions(slug: string): Promise<Petition[]> {
+  async getPopularPetitions(limit: number = 5): Promise<Petition[]> {
     // Check for petitions with the highest number of signatures in the during the day. Limit it to 5 results
-    return;
+    const current = new Date();
+    const oneDayAgo = new Date(current.getTime() - 60 * 1440 * 1000);
+
+    const query = await this.petitionRepository
+      .createQueryBuilder('petition')
+      .select('petition.id')
+      .innerJoin('petition.signatures', 'signature')
+      .where('signature.signatureDate >= :oneDayAgo', { oneDayAgo })
+      .andWhere('signature.signatureDate < :current', { current })
+      .groupBy('petition.id')
+      .orderBy('count(signature.id)', 'DESC')
+      .limit(limit)
+      .getMany();
+
+    let petitions: any = []; // query.forEach(async (petition) => await this.petitionRepository.findOne({where: {id: petition.id}}));
+    for (let petition of query) {
+      let retrievedPetition = await this.petitionRepository.findOne({
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          signatures: true,
+        },
+        where: { id: petition.id }, // loadEagerRelations: false,
+      });
+
+      let signatureCount = retrievedPetition.signatures.length;
+
+      Object.assign(retrievedPetition, { signatureCount });
+
+      delete retrievedPetition['signatures'];
+
+      petitions.push(retrievedPetition);
+    }
+
+    return petitions;
   }
 }

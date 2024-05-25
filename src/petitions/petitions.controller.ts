@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { PetitionsService } from './petitions.service';
 import { CreatePetitionDto } from './dto/create-petition.dto';
@@ -22,6 +23,12 @@ export class PetitionsController {
     const newPetition =
       await this.petitionsService.createPetition(createPetitionDto);
     return newPetition;
+  }
+
+  @Get('/feed')
+  async getPopularPetitions(@Query('limit') limit: number) {
+    const petitionIds = await this.petitionsService.getPopularPetitions(limit);
+    return petitionIds;
   }
 
   @Get(':slug')
