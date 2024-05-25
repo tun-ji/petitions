@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { PetitionsService } from './petitions.service';
 import { CreatePetitionDto } from './dto/create-petition.dto';

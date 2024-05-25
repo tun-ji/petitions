@@ -3,7 +3,6 @@ import { PetitionsService } from './petitions.service';
 import { PetitionsController } from './petitions.controller';
 import { Petition } from './entities/petition.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { SignaturesService } from 'src/signatures/signatures.service';
 import { SignaturesModule } from 'src/signatures/signatures.module';
 
 @Module({
