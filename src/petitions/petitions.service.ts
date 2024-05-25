@@ -1,4 +1,10 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  forwardRef,
+} from '@nestjs/common';
 import { CreatePetitionDto } from './dto/create-petition.dto';
 import { UpdatePetitionDto } from './dto/update-petition.dto';
 import { Petition } from './entities/petition.entity';
@@ -11,9 +17,10 @@ import { CreateSignatureDto } from 'src/signatures/dto/create-signature.dto';
 @Injectable()
 export class PetitionsService {
   constructor(
+    @Inject(forwardRef(() => SignaturesService))
+    private signatureService: SignaturesService,
     @InjectRepository(Petition)
     private readonly petitionRepository: Repository<Petition>,
-    private readonly SignatureService: SignaturesService,
   ) {}
 
   private slugMaker(title: string): string {
@@ -51,7 +58,7 @@ export class PetitionsService {
     newPetition = await this.petitionRepository.save(newPetition);
 
     let createSignatureDto: CreateSignatureDto = {
-      petition: newPetition,
+      petitionSlug: newPetition.slug,
       signatoryName: createPetitionDto.creator.creatorName,
       signatoryEmail: createPetitionDto.creator.creatorEmail,
       signatoryPhoneNumber: createPetitionDto.creator.creatorPhoneNumber,
@@ -60,7 +67,7 @@ export class PetitionsService {
       signatoryConstituency: createPetitionDto.creator.creatorConstituency,
     };
     const newSignature =
-      await this.SignatureService.signPetition(createSignatureDto);
+      await this.signatureService.signPetition(createSignatureDto);
 
     // Sign the Petition With the User
     return this.petitionRepository.save({

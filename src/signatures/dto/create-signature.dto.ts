@@ -7,5 +7,5 @@ export class CreateSignatureDto {
   signatoryState: string;
   signatoryConstituency: string;
   notify: boolean;
-  petition: Petition;
+  petitionSlug: string;
 }
