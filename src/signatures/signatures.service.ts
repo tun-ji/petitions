@@ -67,8 +67,6 @@ export class SignaturesService {
       .groupBy('signature.signatoryState')
       .getRawMany();
 
-    console.log(query);
-
     const features = [];
 
     for (let row of query) {
