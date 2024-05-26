@@ -7,6 +7,7 @@ import { Petition } from './petitions/entities/petition.entity';
 import { Signature } from './signatures/entities/signature.entity';
 import { PetitionsModule } from './petitions/petitions.module';
 import { SignaturesModule } from './signatures/signatures.module';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 
 @Module({
   imports: [
@@ -25,6 +26,16 @@ import { SignaturesModule } from './signatures/signatures.module';
     }),
     PetitionsModule,
     SignaturesModule,
+    ClientsModule.register([
+      {
+        name: 'ALERTS_SERVICE',
+        transport: Transport.RMQ,
+        options: {
+          urls: ['amqp://localhost:5672'],
+          queue: 'notifications-queue',
+        },
+      },
+    ]),
   ],
   controllers: [AppController],
   providers: [AppService],
