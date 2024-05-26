@@ -26,16 +26,6 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
     }),
     PetitionsModule,
     SignaturesModule,
-    ClientsModule.register([
-      {
-        name: 'ALERTS_SERVICE',
-        transport: Transport.RMQ,
-        options: {
-          urls: ['amqp://localhost:5672'],
-          queue: 'notifications-queue',
-        },
-      },
-    ]),
   ],
   controllers: [AppController],
   providers: [AppService],
