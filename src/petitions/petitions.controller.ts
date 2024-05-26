@@ -25,6 +25,12 @@ export class PetitionsController {
     return newPetition;
   }
 
+  @Get('/feed')
+  async getPopularPetitions(@Query('limit') limit: number) {
+    const petitionIds = await this.petitionsService.getPopularPetitions(limit);
+    return petitionIds;
+  }
+
   @Get(':slug')
   async getPetitionBySlug(@Param('slug') slug: string) {
     const petition = await this.petitionsService.getPetitionBySlug(slug);
