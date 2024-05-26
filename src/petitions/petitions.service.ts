@@ -72,7 +72,7 @@ export class PetitionsService {
     const newSignature =
       await this.signatureService.signPetition(createSignatureDto);
 
-    this.rabbitClient.emit('petition-created', newPetition);
+    await this.rabbitClient.emit('petition-created', newPetition);
     // Sign the Petition With the User
     return this.petitionRepository.save({
       id: newPetition.id,
@@ -169,5 +169,13 @@ export class PetitionsService {
     }
 
     return petitions;
+  }
+
+  async openPetition(petition: Petition) {
+    console.log(`OPENING PETITION ${petition.slug}`);
+    return await this.petitionRepository.save({
+      id: petition.id,
+      ...petition,
+    });
   }
 }
