@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { Petition } from 'src/petitions/entities/petition.entity';
 import { FeatureCollection, Feature } from 'geojson';
 import * as fs from 'fs';
+import { ClientProxy } from '@nestjs/microservices';
 
 const nigeriaStateGeoJSONPath = 'src/signatures/util/nigeria_geojson.geojson';
 @Injectable()
@@ -15,6 +16,8 @@ export class SignaturesService {
     private readonly signatureRepository: Repository<Signature>,
     @InjectRepository(Petition)
     private readonly petitionRepository: Repository<Petition>,
+    @Inject('ALERTS_SERVICE')
+    private rabbitClient: ClientProxy,
   ) {}
 
   async getPetitionBySlug(slug: string): Promise<Petition> {
@@ -44,6 +47,14 @@ export class SignaturesService {
     let petition = await this.getPetitionBySlug(
       CreateSignatureDto.petitionSlug,
     );
+
+    if (petition.signatures.length == 9 && !petition.isOpen) {
+      petition.isOpen = true;
+      petition.isVisible = true;
+      petition.openedAt = new Date();
+      this.rabbitClient.emit('petition.opened', petition);
+    }
+
     const newSignature = new Signature();
     Object.assign(newSignature, CreateSignatureDto);
     newSignature.petition = petition;
