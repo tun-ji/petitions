@@ -11,6 +11,7 @@ import {
 import { PetitionsService } from './petitions.service';
 import { CreatePetitionDto } from './dto/create-petition.dto';
 import { Petition } from './entities/petition.entity';
+import { EventPattern, Payload } from '@nestjs/microservices';
 
 @Controller('petitions')
 export class PetitionsController {
@@ -35,5 +36,10 @@ export class PetitionsController {
   async getPetitionBySlug(@Param('slug') slug: string) {
     const petition = await this.petitionsService.getPetitionBySlug(slug);
     return petition;
+  }
+
+  @EventPattern('petition.opened')
+  async openPetition(@Payload() petition: Petition) {
+    return await this.petitionsService.openPetition(petition);
   }
 }

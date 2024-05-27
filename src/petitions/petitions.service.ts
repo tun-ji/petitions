@@ -13,6 +13,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import slugify from 'slugify';
 import { SignaturesService } from 'src/signatures/signatures.service';
 import { CreateSignatureDto } from 'src/signatures/dto/create-signature.dto';
+import { ClientProxy } from '@nestjs/microservices';
 
 @Injectable()
 export class PetitionsService {
@@ -21,6 +22,8 @@ export class PetitionsService {
     private signatureService: SignaturesService,
     @InjectRepository(Petition)
     private readonly petitionRepository: Repository<Petition>,
+    @Inject('ALERTS_SERVICE')
+    private rabbitClient: ClientProxy,
   ) {}
 
   private slugMaker(title: string): string {
@@ -69,6 +72,7 @@ export class PetitionsService {
     const newSignature =
       await this.signatureService.signPetition(createSignatureDto);
 
+    await this.rabbitClient.emit('petition-created', newPetition);
     // Sign the Petition With the User
     return this.petitionRepository.save({
       id: newPetition.id,
@@ -165,5 +169,13 @@ export class PetitionsService {
     }
 
     return petitions;
+  }
+
+  async openPetition(petition: Petition) {
+    console.log(`OPENING PETITION ${petition.slug}`);
+    return await this.petitionRepository.save({
+      id: petition.id,
+      ...petition,
+    });
   }
 }
