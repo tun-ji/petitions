@@ -8,6 +8,7 @@ import { Signature } from './signatures/entities/signature.entity';
 import { PetitionsModule } from './petitions/petitions.module';
 import { SignaturesModule } from './signatures/signatures.module';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { CorsMiddleware } from './middleware/cors.middleware';
 
 @Module({
   imports: [
@@ -28,6 +29,13 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
     SignaturesModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, CorsMiddleware],
 })
-export class AppModule {}
+export class AppModule {
+  configure(config: any) {
+    return {
+      ...config,
+      globalMiddleware: [CorsMiddleware]
+    }
+  }
+}
