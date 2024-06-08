@@ -85,7 +85,7 @@ export class PetitionsService {
    * @param {string} slug Unique slug identifying a petition
    * @returns {Promise<Petition>} Full Petition object
    */
-  async getPetitionBySlug(slug: string): Promise<Petition> {
+  async getPetitionBySlug(slug: string): Promise<any> {
     let petition;
 
     try {
@@ -101,7 +101,11 @@ export class PetitionsService {
       );
     }
 
-    return petition;
+    let signatureCount = petition.signatures.length
+    delete petition['signatures']
+    delete petition['creatorEmail']
+    
+    return  {...petition, signatureCount };
   }
 
   async signPetition(slug: string, userId: number): Promise<any> {

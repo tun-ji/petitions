@@ -80,6 +80,9 @@ export class SignaturesService {
 
     const features = [];
 
+    delete petition['signatures']
+    delete petition['creatorEmail']
+
     for (let row of query) {
       let feature = this.createFeatureFromState(
         row.state_name,
@@ -93,8 +96,11 @@ export class SignaturesService {
     }
 
     return {
-      type: 'FeatureCollection',
-      features,
+      petition,
+      geoJSON: {
+        type: 'FeatureCollection',
+        features,
+      }
     };
   }
 
