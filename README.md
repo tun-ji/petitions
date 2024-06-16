@@ -1,7 +1,7 @@
 # e-Petitions Backend Service 
 
 ## Installing the Project
-Make sure you have Docker, RabbitMQ and NodeJS installed locally
+Make sure you have Docker, RabbitMQ and Node installed locally
 1. Git clone `https://github.com/tun-ji/petitions.git`
 2. `cd` into your installation directory
 3. Run `npm i`
