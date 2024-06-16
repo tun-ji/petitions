@@ -11,7 +11,11 @@ import {
 import { SignaturesService } from './signatures.service';
 import { CreateSignatureDto } from './dto/create-signature.dto';
 import { UpdateSignatureDto } from './dto/update-signature.dto';
-import { generateRequestId, makeServiceFailure, makeServiceSuccess } from 'src/utils/serviceResp.utils';
+import {
+  generateRequestId,
+  makeServiceFailure,
+  makeServiceSuccess,
+} from 'src/utils/serviceResp.utils';
 
 @Controller('signatures')
 export class SignaturesController {
@@ -26,13 +30,23 @@ export class SignaturesController {
 
   @Post('sign')
   async create(@Body() createSignatureDto: CreateSignatureDto) {
-    const responseID = generateRequestId() + '-C'    
-    let newSignature
+    const responseID = generateRequestId() + '-C';
+    let newSignature;
     try {
-      newSignature = await this.signaturesService.signPetition(createSignatureDto);
-      return makeServiceSuccess(responseID, 'SignPetitionController', newSignature)
+      newSignature =
+        await this.signaturesService.signPetition(createSignatureDto);
+      return makeServiceSuccess(
+        responseID,
+        'SignPetitionController',
+        newSignature,
+      );
     } catch (error) {
-      return makeServiceFailure(responseID, 'SignPetitionController', error.name, error.message)
+      return makeServiceFailure(
+        responseID,
+        'SignPetitionController',
+        error.name,
+        error.message,
+      );
     }
   }
 }

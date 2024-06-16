@@ -48,7 +48,7 @@ export class PetitionsService {
   async createPetition(
     createPetitionDto: CreatePetitionDto,
   ): Promise<Petition> {
-    console.log(createPetitionDto)
+    console.log(createPetitionDto);
     // Create a Petition
     let newPetition = new Petition();
     Object.assign(newPetition, createPetitionDto.petition);
@@ -90,7 +90,10 @@ export class PetitionsService {
     let petition;
 
     try {
-      petition = await this.petitionRepository.findOne({ where: { slug }, relations: { signatures: true} });
+      petition = await this.petitionRepository.findOne({
+        where: { slug },
+        relations: { signatures: true },
+      });
     } catch (error) {
       return error;
     }
@@ -102,22 +105,22 @@ export class PetitionsService {
       );
     }
 
-    let signatureCount = petition.signatures.length
-    delete petition['signatures']
-    delete petition['creatorEmail']
-    
-    return  {...petition, signatureCount };
+    let signatureCount = petition.signatures.length;
+    delete petition['signatures'];
+    delete petition['creatorEmail'];
+
+    return { ...petition, signatureCount };
   }
 
   async getPetitions(): Promise<any> {
     return await this.petitionRepository.find({
       where: {
-        isOpen: true
+        isOpen: true,
       },
       select: {
-        signatures: false
-      }
-    })
+        signatures: false,
+      },
+    });
   }
 
   async signPetition(slug: string, userId: number): Promise<any> {
@@ -164,7 +167,6 @@ export class PetitionsService {
       .limit(limit)
       .getMany();
 
-
     let petitions: any = []; // query.forEach(async (petition) => await this.petitionRepository.findOne({where: {id: petition.id}}));
     for (let petition of query) {
       let retrievedPetition = await this.petitionRepository.findOne({
@@ -174,11 +176,16 @@ export class PetitionsService {
           slug: true,
           signatures: true,
         },
-        where: { id: petition.id }, 
-        relations: { signatures: true } // loadEagerRelations: false,
+        where: { id: petition.id },
+        relations: { signatures: true }, // loadEagerRelations: false,
       });
 
-      let signatureCount = await this.signatureService.getPopularPetitionSignatureCount(petition.id, current, oneDayAgo)
+      let signatureCount =
+        await this.signatureService.getPopularPetitionSignatureCount(
+          petition.id,
+          current,
+          oneDayAgo,
+        );
 
       Object.assign(retrievedPetition, { signatureCount });
 

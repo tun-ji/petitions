@@ -35,7 +35,7 @@ export class AppModule {
   configure(config: any) {
     return {
       ...config,
-      globalMiddleware: [CorsMiddleware]
-    }
+      globalMiddleware: [CorsMiddleware],
+    };
   }
 }

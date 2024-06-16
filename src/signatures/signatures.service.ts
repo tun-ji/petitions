@@ -80,8 +80,8 @@ export class SignaturesService {
 
     const features = [];
 
-    delete petition['signatures']
-    delete petition['creatorEmail']
+    delete petition['signatures'];
+    delete petition['creatorEmail'];
 
     for (let row of query) {
       let feature = this.createFeatureFromState(
@@ -100,7 +100,7 @@ export class SignaturesService {
       geoJSON: {
         type: 'FeatureCollection',
         features,
-      }
+      },
     };
   }
 
@@ -130,14 +130,14 @@ export class SignaturesService {
 
   async getPopularPetitionSignatureCount(petitionId, current, oneDayAgo) {
     const signatureCountQuery = await this.signatureRepository
-    .createQueryBuilder('signature')
-    .select('signature.id')
-    .innerJoin('signature.petition', 'petition')
-    .where('petition.id = :petitionId', { petitionId })
-    .andWhere('signature.signatureDate >= :oneDayAgo', { oneDayAgo })
-    .andWhere('signature.signatureDate < :current', { current })
-    .getCount()
+      .createQueryBuilder('signature')
+      .select('signature.id')
+      .innerJoin('signature.petition', 'petition')
+      .where('petition.id = :petitionId', { petitionId })
+      .andWhere('signature.signatureDate >= :oneDayAgo', { oneDayAgo })
+      .andWhere('signature.signatureDate < :current', { current })
+      .getCount();
 
-    return signatureCountQuery
+    return signatureCountQuery;
   }
 }
