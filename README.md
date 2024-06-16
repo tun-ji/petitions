@@ -5,7 +5,7 @@ Make sure you have Docker, RabbitMQ and NodeJS installed locally
 1. Git clone `https://github.com/tun-ji/petitions.git`
 2. `cd` into your installation directory
 3. Run `npm i`
-4. Repeat this for this repository: `http://github.com/tun-ji/notifications.git`
+4. Repeat this for this repository: http://github.com/tun-ji/notifications.git
 5. Run `docker-compose up -d`
 6. You should see two services running in Docker Desktop
 
