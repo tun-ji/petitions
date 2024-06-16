@@ -1,4 +1,7 @@
-const makeServiceSuccess = (requestId, name, payload) => {
+import { v4 as uuidv4 } from 'uuid';
+
+
+export const makeServiceSuccess = (requestId, name, payload) => {
   console.log(`${requestId} - ${name}: SUCCESSFUL`);
   return {
     result: 'success',
@@ -6,7 +9,7 @@ const makeServiceSuccess = (requestId, name, payload) => {
   };
 };
 
-const makeServiceFailure = (requestId, name, errorName, errorMessage) => {
+export const makeServiceFailure = (requestId, name, errorName, errorMessage) => {
   console.log(`${requestId} - ${name}: ERROR ${errorName} ${errorMessage}`);
 
   return {
@@ -15,3 +18,8 @@ const makeServiceFailure = (requestId, name, errorName, errorMessage) => {
     errorMessage,
   };
 };
+
+export function generateRequestId(): string {
+  return uuidv4();
+}
+

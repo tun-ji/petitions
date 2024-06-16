@@ -7,19 +7,21 @@ import { Petition } from './petitions/entities/petition.entity';
 import { Signature } from './signatures/entities/signature.entity';
 import { PetitionsModule } from './petitions/petitions.module';
 import { SignaturesModule } from './signatures/signatures.module';
+import { ClientsModule, Transport } from '@nestjs/microservices';
+import { CorsMiddleware } from './middleware/cors.middleware';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: '../.env.petition.dev',
+      envFilePath: '.env.development.local',
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres',
-      password: 'postgres',
-      database: 'petition-db',
+      host: process.env.POSTGRES_HOST,
+      port: process.env.POSTGRES_PORT as unknown as number,
+      username: process.env.POSTGRES_USER,
+      password: process.env.POSTGRES_PASSWORD,
+      database: process.env.POSTGRES_DB,
       entities: [Petition, Signature],
       synchronize: true,
     }),
@@ -27,6 +29,13 @@ import { SignaturesModule } from './signatures/signatures.module';
     SignaturesModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, CorsMiddleware],
 })
-export class AppModule {}
+export class AppModule {
+  configure(config: any) {
+    return {
+      ...config,
+      globalMiddleware: [CorsMiddleware]
+    }
+  }
+}

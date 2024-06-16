@@ -1,4 +1,10 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  forwardRef,
+} from '@nestjs/common';
 import { CreatePetitionDto } from './dto/create-petition.dto';
 import { UpdatePetitionDto } from './dto/update-petition.dto';
 import { Petition } from './entities/petition.entity';
@@ -7,13 +13,17 @@ import { InjectRepository } from '@nestjs/typeorm';
 import slugify from 'slugify';
 import { SignaturesService } from 'src/signatures/signatures.service';
 import { CreateSignatureDto } from 'src/signatures/dto/create-signature.dto';
+import { ClientProxy } from '@nestjs/microservices';
 
 @Injectable()
 export class PetitionsService {
   constructor(
+    @Inject(forwardRef(() => SignaturesService))
+    private signatureService: SignaturesService,
     @InjectRepository(Petition)
     private readonly petitionRepository: Repository<Petition>,
-    private readonly SignatureService: SignaturesService,
+    @Inject('ALERTS_SERVICE')
+    private rabbitClient: ClientProxy,
   ) {}
 
   private slugMaker(title: string): string {
@@ -38,6 +48,7 @@ export class PetitionsService {
   async createPetition(
     createPetitionDto: CreatePetitionDto,
   ): Promise<Petition> {
+    console.log(createPetitionDto)
     // Create a Petition
     let newPetition = new Petition();
     Object.assign(newPetition, createPetitionDto.petition);
@@ -51,7 +62,7 @@ export class PetitionsService {
     newPetition = await this.petitionRepository.save(newPetition);
 
     let createSignatureDto: CreateSignatureDto = {
-      petition: newPetition,
+      petitionSlug: newPetition.slug,
       signatoryName: createPetitionDto.creator.creatorName,
       signatoryEmail: createPetitionDto.creator.creatorEmail,
       signatoryPhoneNumber: createPetitionDto.creator.creatorPhoneNumber,
@@ -60,8 +71,9 @@ export class PetitionsService {
       signatoryConstituency: createPetitionDto.creator.creatorConstituency,
     };
     const newSignature =
-      await this.SignatureService.signPetition(createSignatureDto);
+      await this.signatureService.signPetition(createSignatureDto);
 
+    await this.rabbitClient.emit('petition-created', newPetition);
     // Sign the Petition With the User
     return this.petitionRepository.save({
       id: newPetition.id,
@@ -74,11 +86,11 @@ export class PetitionsService {
    * @param {string} slug Unique slug identifying a petition
    * @returns {Promise<Petition>} Full Petition object
    */
-  async getPetitionBySlug(slug: string): Promise<Petition> {
+  async getPetitionBySlug(slug: string): Promise<any> {
     let petition;
 
     try {
-      petition = await this.petitionRepository.findOne({ where: { slug } });
+      petition = await this.petitionRepository.findOne({ where: { slug }, relations: { signatures: true} });
     } catch (error) {
       return error;
     }
@@ -90,7 +102,22 @@ export class PetitionsService {
       );
     }
 
-    return petition;
+    let signatureCount = petition.signatures.length
+    delete petition['signatures']
+    delete petition['creatorEmail']
+    
+    return  {...petition, signatureCount };
+  }
+
+  async getPetitions(): Promise<any> {
+    return await this.petitionRepository.find({
+      where: {
+        isOpen: true
+      },
+      select: {
+        signatures: false
+      }
+    })
   }
 
   async signPetition(slug: string, userId: number): Promise<any> {
@@ -120,8 +147,54 @@ export class PetitionsService {
     // Mark the petition as closed
   }
 
-  async getPopularPetitions(slug: string): Promise<Petition[]> {
+  async getPopularPetitions(limit: number = 5): Promise<Petition[]> {
     // Check for petitions with the highest number of signatures in the during the day. Limit it to 5 results
-    return;
+    const current = new Date();
+    const oneDayAgo = new Date(current.getTime() - 60 * 1440 * 1000);
+
+    const query = await this.petitionRepository
+      .createQueryBuilder('petition')
+      .select('petition.id')
+      .innerJoin('petition.signatures', 'signature')
+      .where('signature.signatureDate >= :oneDayAgo', { oneDayAgo })
+      .andWhere('signature.signatureDate < :current', { current })
+      .andWhere('petition.isOpen = true')
+      .groupBy('petition.id')
+      .orderBy('count(signature.id)', 'DESC')
+      .limit(limit)
+      .getMany();
+
+
+    let petitions: any = []; // query.forEach(async (petition) => await this.petitionRepository.findOne({where: {id: petition.id}}));
+    for (let petition of query) {
+      let retrievedPetition = await this.petitionRepository.findOne({
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          signatures: true,
+        },
+        where: { id: petition.id }, 
+        relations: { signatures: true } // loadEagerRelations: false,
+      });
+
+      let signatureCount = await this.signatureService.getPopularPetitionSignatureCount(petition.id, current, oneDayAgo)
+
+      Object.assign(retrievedPetition, { signatureCount });
+
+      delete retrievedPetition['signatures'];
+
+      petitions.push(retrievedPetition);
+    }
+
+    return petitions;
+  }
+
+  async openPetition(petition: Petition) {
+    console.log(`OPENING PETITION ${petition.slug}`);
+    return await this.petitionRepository.save({
+      id: petition.id,
+      ...petition,
+    });
   }
 }

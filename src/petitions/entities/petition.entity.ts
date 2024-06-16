@@ -59,9 +59,8 @@ export class Petition {
   @Column({ type: 'int', nullable: true })
   billId: number;
 
-  // TODO: Make a relationship between the Petition and the Signatures
   @OneToMany(() => Signature, (signature) => signature.petition, {
-    eager: true,
+    eager: false,
   })
   signatures: Signature[];
 
