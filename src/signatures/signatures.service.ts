@@ -13,7 +13,7 @@ const nigeriaStateGeoJSONPath = 'src/signatures/util/nigeria_geojson.geojson';
 export class SignaturesService {
   constructor(
     @InjectRepository(Signature)
-    private readonly signatureRepository: Repository<Signature>,
+    public readonly signatureRepository: Repository<Signature>,
     @InjectRepository(Petition)
     private readonly petitionRepository: Repository<Petition>,
     @Inject('ALERTS_SERVICE')
@@ -48,7 +48,7 @@ export class SignaturesService {
       CreateSignatureDto.petitionSlug,
     );
 
-    if (petition.signatures.length == 9 && !petition.isOpen) {
+    if (petition.signatures?.length == 9 && !petition.isOpen) {
       petition.isOpen = true;
       petition.isVisible = true;
       petition.openedAt = new Date();
@@ -126,5 +126,18 @@ export class SignaturesService {
       console.warn(`State "${stateName}" not found in Nigeria GeoJSON data.`);
     }
     return;
+  }
+
+  async getPopularPetitionSignatureCount(petitionId, current, oneDayAgo) {
+    const signatureCountQuery = await this.signatureRepository
+    .createQueryBuilder('signature')
+    .select('signature.id')
+    .innerJoin('signature.petition', 'petition')
+    .where('petition.id = :petitionId', { petitionId })
+    .andWhere('signature.signatureDate >= :oneDayAgo', { oneDayAgo })
+    .andWhere('signature.signatureDate < :current', { current })
+    .getCount()
+
+    return signatureCountQuery
   }
 }

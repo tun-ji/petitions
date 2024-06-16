@@ -48,6 +48,7 @@ export class PetitionsService {
   async createPetition(
     createPetitionDto: CreatePetitionDto,
   ): Promise<Petition> {
+    console.log(createPetitionDto)
     // Create a Petition
     let newPetition = new Petition();
     Object.assign(newPetition, createPetitionDto.petition);
@@ -89,7 +90,7 @@ export class PetitionsService {
     let petition;
 
     try {
-      petition = await this.petitionRepository.findOne({ where: { slug } });
+      petition = await this.petitionRepository.findOne({ where: { slug }, relations: { signatures: true} });
     } catch (error) {
       return error;
     }
@@ -106,6 +107,17 @@ export class PetitionsService {
     delete petition['creatorEmail']
     
     return  {...petition, signatureCount };
+  }
+
+  async getPetitions(): Promise<any> {
+    return await this.petitionRepository.find({
+      where: {
+        isOpen: true
+      },
+      select: {
+        signatures: false
+      }
+    })
   }
 
   async signPetition(slug: string, userId: number): Promise<any> {
@@ -146,10 +158,12 @@ export class PetitionsService {
       .innerJoin('petition.signatures', 'signature')
       .where('signature.signatureDate >= :oneDayAgo', { oneDayAgo })
       .andWhere('signature.signatureDate < :current', { current })
+      .andWhere('petition.isOpen = true')
       .groupBy('petition.id')
       .orderBy('count(signature.id)', 'DESC')
       .limit(limit)
       .getMany();
+
 
     let petitions: any = []; // query.forEach(async (petition) => await this.petitionRepository.findOne({where: {id: petition.id}}));
     for (let petition of query) {
@@ -160,10 +174,11 @@ export class PetitionsService {
           slug: true,
           signatures: true,
         },
-        where: { id: petition.id }, // loadEagerRelations: false,
+        where: { id: petition.id }, 
+        relations: { signatures: true } // loadEagerRelations: false,
       });
 
-      let signatureCount = retrievedPetition.signatures.length;
+      let signatureCount = await this.signatureService.getPopularPetitionSignatureCount(petition.id, current, oneDayAgo)
 
       Object.assign(retrievedPetition, { signatureCount });
 

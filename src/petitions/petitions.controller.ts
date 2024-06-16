@@ -35,10 +35,30 @@ export class PetitionsController {
     }
   }
 
+  @Get()
+  async getPetitions() {
+    let petitions 
+    const responseId = generateRequestId() + 'C'
+
+    try {
+      petitions = await this.petitionsService.getPetitions();
+      return makeServiceSuccess(responseId, 'GetPetitionsController', petitions)
+    } catch (error) {
+      return makeServiceFailure(responseId, 'GetPetitionsController', error.name, error.message)
+    }
+  }
+
   @Get('/feed')
   async getPopularPetitions(@Query('limit') limit: number) {
-    const petitionIds = await this.petitionsService.getPopularPetitions(limit);
-    return petitionIds;
+    let popularPetitions
+    const responseID = generateRequestId() + '-C'    
+
+    try {
+      popularPetitions = await this.petitionsService.getPopularPetitions(limit);
+      return makeServiceSuccess(responseID, 'GetPopularPetitionsController', popularPetitions)
+    } catch (error) {
+      return makeServiceFailure(responseID, 'GetPopularPetitionsController', error.name, error.message)
+    }
   }
 
   @Get(':slug')

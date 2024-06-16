@@ -60,7 +60,7 @@ export class Petition {
   billId: number;
 
   @OneToMany(() => Signature, (signature) => signature.petition, {
-    eager: true,
+    eager: false,
   })
   signatures: Signature[];
 
