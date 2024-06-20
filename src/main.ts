@@ -8,7 +8,7 @@ async function bootstrap() {
   const petitionMS = app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.RMQ,
     options: {
-      urls: ['amqp://guest:guest@petitions-rabbitmq.onrender.com:5672'],
+      urls: ['amqp://guest:guest@petitions-rabbitmq:5672'],
       queue: 'petition-queue',
     },
   });
