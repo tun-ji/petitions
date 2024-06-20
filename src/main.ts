@@ -13,6 +13,10 @@ async function bootstrap() {
     },
   });
   await app.startAllMicroservices();
-  await app.listen(10000, '0.0.0.0');
+  const PORT = process.env.port || 10000
+  const HOST = '0.0.0.0'
+  await app.listen(PORT, HOST, () => {
+    `Server listening on Port ${PORT}, hostname: ${HOST}`
+  });
 }
 bootstrap();
