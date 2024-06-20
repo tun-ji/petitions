@@ -5,7 +5,7 @@ import * as cors from 'cors';
 export class CorsMiddleware implements NestMiddleware {
   use(req: any, res: any, next: Function) {
     const options = {
-      origin: '*', // Replace with your frontend origin
+      origin: '*', 
       methods: 'GET, POST, PUT, DELETE, OPTIONS',
       allowedHeaders: ['Content-Type', 'Authorization'],
     };

@@ -24,7 +24,7 @@ export class SignaturesService {
     let petition;
 
     try {
-      petition = await this.petitionRepository.findOne({ where: { slug } });
+      petition = await this.petitionRepository.findOne({ where: { slug }, relations: { signatures: true } });
     } catch (error) {
       return error;
     }
@@ -47,8 +47,8 @@ export class SignaturesService {
     let petition = await this.getPetitionBySlug(
       CreateSignatureDto.petitionSlug,
     );
-
-    if (petition.signatures?.length == 9 && !petition.isOpen) {
+    console.log(petition)
+    if (petition.signatures.length == 9 && !petition.isOpen) {
       petition.isOpen = true;
       petition.isVisible = true;
       petition.openedAt = new Date();
