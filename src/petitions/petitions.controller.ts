@@ -118,4 +118,5 @@ export class PetitionsController {
   async openPetition(@Payload() petition: Petition) {
     return await this.petitionsService.openPetition(petition);
   }
+
 }

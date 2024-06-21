@@ -47,7 +47,7 @@ export class SignaturesService {
     let petition = await this.getPetitionBySlug(
       CreateSignatureDto.petitionSlug,
     );
-    console.log(petition)
+
     if (petition.signatures.length == 9 && !petition.isOpen) {
       petition.isOpen = true;
       petition.isVisible = true;
@@ -59,7 +59,10 @@ export class SignaturesService {
     Object.assign(newSignature, CreateSignatureDto);
     newSignature.petition = petition;
     newSignature.signatureDate = new Date();
-    return await this.signatureRepository.save(newSignature);
+    let signature = await this.signatureRepository.save(newSignature);
+    this.rabbitClient.emit('petition-signed', newSignature);
+
+    return signature
   }
 
   async getPetitionSupportByState(

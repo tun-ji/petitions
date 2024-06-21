@@ -16,6 +16,8 @@ import {
   makeServiceFailure,
   makeServiceSuccess,
 } from 'src/utils/serviceResp.utils';
+import { EventPattern, Payload } from '@nestjs/microservices';
+import { Signature } from './entities/signature.entity';
 
 @Controller('signatures')
 export class SignaturesController {
@@ -49,4 +51,5 @@ export class SignaturesController {
       );
     }
   }
+
 }
