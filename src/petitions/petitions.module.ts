@@ -15,7 +15,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
         name: 'ALERTS_SERVICE',
         transport: Transport.RMQ,
         options: {
-          urls: ['amqp://guest:guest@petitions-rabbitmq:5672'],
+          urls: ['amqp://rabbitmq:rabbitmq@petitions-rabbitmq:5672'],
           queue: 'notifications-queue',
         },
       },
