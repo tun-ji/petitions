@@ -60,7 +60,7 @@ export class SignaturesService {
     newSignature.petition = petition;
     newSignature.signatureDate = new Date();
     let signature = await this.signatureRepository.save(newSignature);
-    this.rabbitClient.emit('petition-signed', newSignature);
+    await this.rabbitClient.emit('petition.signed', newSignature);
 
     return signature
   }

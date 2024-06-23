@@ -119,4 +119,9 @@ export class PetitionsController {
     return await this.petitionsService.openPetition(petition);
   }
 
+  @EventPattern('petition.signed')
+  async signPetitionNotification(@Payload() petition: any) {
+    return await this.petitionsService.signPetitionNotification(petition)
+  }
+
 }

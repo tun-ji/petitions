@@ -123,19 +123,9 @@ export class PetitionsService {
     });
   }
 
-  async signPetition(slug: string, userId: number): Promise<any> {
-    let petition;
-
-    try {
-      petition = await this.getPetitionBySlug(slug);
-    } catch (error) {
-      return error;
-    }
-
-    // Check if the petition is still open (i.e. the deadline hasn't passed)
-    // Update the signature entity
-    // Update the petitions entity
-    // Return success/failure
+  async signPetitionNotification(petition): Promise<any> {
+    await this.rabbitClient.emit('petition-signed', petition); 
+    return
   }
 
   async closePetition(slug: string): Promise<any> {
